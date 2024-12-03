@@ -1,5 +1,8 @@
 const std = @import("std");
 
+var total: usize = 0;
+var enabled = true;
+
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
@@ -12,27 +15,13 @@ pub fn main() !void {
     defer input_file.close();
     var input: []const u8 = try input_file.readToEndAlloc(allocator, 1_000_000);
 
-    var total: usize = 0;
-
     while (input.len > 0) {
-        while (!match(&input, 'm')) _ = advance(&input) or break;
-        _ = match(&input, 'u') or continue;
-        _ = match(&input, 'l') or continue;
-        _ = match(&input, '(') or continue;
-        
-        var split = span(input, isDigit);
-        const left = std.fmt.parseInt(usize, split.first, 10) catch continue;
-        input = split.second;
-
-        _ = match(&input, ',') or continue;
-
-        split = span(input, isDigit);
-        const right = std.fmt.parseInt(usize, split.first, 10) catch continue;
-        input = split.second;
-
-        _ = match(&input, ')') or continue;
-
-        total += left * right;
+        if (enabled) {
+            _ = parseMul(input) or parseDont(input);
+        } else {
+            _ = parseDo(input);
+        }
+        _ = advance(&input);
     }
 
     const stdout_file = std.io.getStdOut().writer();
@@ -44,16 +33,60 @@ pub fn main() !void {
     try bw.flush();
 }
 
+fn parseMul(input: []const u8) bool {
+    var code = input;
+
+    for ("mul(") |c| {
+        _ = match(&code, c) or return false;
+    }
+
+    var split = span(code, isDigit);
+    const left = std.fmt.parseInt(usize, split.first, 10) catch return false;
+    code = split.second;
+
+    _ = match(&code, ',') or return false;
+
+    split = span(code, isDigit);
+    const right = std.fmt.parseInt(usize, split.first, 10) catch return false;
+    code = split.second;
+
+    _ = match(&code, ')') or return false;
+
+    total += left * right;
+    return true;
+}
+
+fn parseDo(input: []const u8) bool {
+    var code = input;
+    for ("do()") |c| {
+        _ = match(&code, c) or return false;
+    }
+    enabled = true;
+    return true;
+}
+
+fn parseDont(input: []const u8) bool {
+    var code = input;
+    for ("don't()") |c| {
+        _ = match(&code, c) or return false;
+    }
+    enabled = false;
+    return true;
+}
+
 fn isDigit(char: u8) bool {
     return '0' <= char and char <= '9';
 }
 
-const SplitString = struct {first: []const u8, second: []const u8};
+const SplitString = struct { first: []const u8, second: []const u8 };
 
-fn span(str: []const u8, p: fn(u8) bool) SplitString {
+fn span(str: []const u8, p: fn (u8) bool) SplitString {
     var i: usize = 0;
-    while (i < str.len and p(str[i])) i+=1;
-    return SplitString{.first = str[0..i], .second = str[i..],};
+    while (i < str.len and p(str[i])) i += 1;
+    return SplitString{
+        .first = str[0..i],
+        .second = str[i..],
+    };
 }
 
 fn advance(str: *[]const u8) bool {
