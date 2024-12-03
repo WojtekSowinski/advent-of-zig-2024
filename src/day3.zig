@@ -28,7 +28,7 @@ pub fn main() !void {
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
 
-    try stdout.print("Total: {}\n", .{total});
+    try stdout.print("[DAY 3]\nTotal: {}\n", .{total});
 
     try bw.flush();
 }
