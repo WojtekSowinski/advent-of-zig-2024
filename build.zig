@@ -4,30 +4,29 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const num_days = 3;
+    const num_days = 5;
     const day: ?usize = b.option(usize, "ay", "Select day");
     const test_step = b.step("test", "Run unit tests");
     const run_step = b.step("run", "Run code");
 
+    var days: [num_days]DaySteps = undefined;
+    for (1..(num_days + 1)) |n| days[n - 1] = buildDay(b, n, target, optimize);
+
     if (day) |n| {
-        var steps = buildDay(b, n, target, optimize);
-
-        test_step.dependOn(&steps.run_tests.step);
-        run_step.dependOn(&steps.run_exe.step);
-
+        const steps = &days[n - 1];
         if (b.args) |args| {
             steps.run_exe.addArgs(args);
         } else {
             steps.run_exe.addFileArg(b.path(b.fmt("inputs/{}", .{n})));
         }
+        test_step.dependOn(&steps.run_tests.step);
+        run_step.dependOn(&steps.run_exe.step);
     } else {
         for (1..(num_days + 1)) |n| {
-            var steps = buildDay(b, n, target, optimize);
-
+            const steps = &days[n - 1];
+            steps.run_exe.addFileArg(b.path(b.fmt("inputs/{}", .{n})));
             test_step.dependOn(&steps.run_tests.step);
             run_step.dependOn(&steps.run_exe.step);
-
-            steps.run_exe.addFileArg(b.path(b.fmt("inputs/{}", .{n})));
         }
     }
 }
