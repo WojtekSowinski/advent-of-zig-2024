@@ -4,7 +4,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const num_days = 5;
+    const num_days = 6;
     const day: ?usize = b.option(usize, "ay", "Select day");
     const test_step = b.step("test", "Run unit tests");
     const run_step = b.step("run", "Run code");
