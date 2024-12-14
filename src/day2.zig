@@ -34,7 +34,7 @@ pub fn main() !void {
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
 
-    try stdout.print("{}\n", .{safe_reports});
+    try stdout.print("[DAY 2]\nSafe Reports: {}\n", .{safe_reports});
 
     try bw.flush();
 }

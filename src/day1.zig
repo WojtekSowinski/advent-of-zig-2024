@@ -43,7 +43,10 @@ pub fn main() !void {
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
 
-    try stdout.print("Distance: {}\nSimilarity Score: {}\n", .{distance, similarity});
+    try stdout.print(
+        "[DAY 1]\nDistance: {}\nSimilarity Score: {}\n",
+        .{ distance, similarity },
+    );
 
     try bw.flush();
 }
